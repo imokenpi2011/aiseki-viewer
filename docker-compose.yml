@@ -1,0 +1,41 @@
+version: '3'
+services:
+  go:
+    build: .
+    # dbコンテナが先に起動するよう設定
+    depends_on:
+      - db
+    # pryを使用してデバッグができるよう設定
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/go/src/work # マウントディレクトリ指定
+    # MySQLコンテナ定義
+  db:
+    # mysqlを使用してコンテナ作成(portは故意にずらす)
+    image: mysql:8.0.4
+    ports:
+        - 3307:3306
+    volumes:
+      # Mysql8.0のデフォルトの認証形式をmysql_native_passwordに設定
+      - ./mysql-confd:/etc/mysql/conf.d
+      # ローカルで保持しているDBをコンテナにマウント
+      - db-volume:/var/lib/mysql
+    # コンテナ内の環境変数を定義
+    environment:
+      # mysqlのルートユーザーのパスワード設定MYSQL_DATABASE: test_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+      MYSQL_ROOT_PASSWORD: root
+  # webpacker:
+  #   build: .
+  #   environment:
+  #     NODE_ENV: development
+  #     RAILS_ENV: development
+  #     WEBPACKER_DEV_SERVER_HOST: 0.0.0.0
+  #   command: ./bin/webpack-dev-server
+  #   ports:
+  #     - '3035:3035'
+# DBの内容をローカルに保持
+volumes:
+  db-volume:
